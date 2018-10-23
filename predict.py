@@ -85,15 +85,15 @@ def model_fit_predict(X_train,X_test,y_train,y_test):
 	for key in models:
 		clf = GridSearchCV(models[key], tuned_parameters[key], scoring=None,  refit=True, cv=10)
 		clf.fit(X_train,y_train)
-		if key == 'SVC':
-			classifier = OneVsRestClassifier(models[key])
-			y_score = classifier.fit(X_train, y_train).decision_function(X_test)
+		# if key == 'SVC':
+		# 	classifier = OneVsRestClassifier(models[key])
+		# 	y_score = classifier.fit(X_train, y_train).decision_function(X_test)
 		y_test_predict = clf.predict(X_test)
 		precision = precision_score(y_test, y_test_predict, average = "macro")
 		accuracy = accuracy_score(y_test, y_test_predict)
-		f1 = f1_score(y_test, y_test_predict)
-		recall = recall_score(y_test, y_test_predict)
-		specificity = specificity_score(y_test, y_test_predict)
+		f1 = f1_score(y_test, y_test_predict , average = "macro")
+		recall = recall_score(y_test, y_test_predict, average = "macro")
+		specificity = specificity_score(y_test, y_test_predict, )
 		scores[key] = [precision,accuracy,f1,recall,specificity]
 	#print(scores)
 	return scores, y_score
