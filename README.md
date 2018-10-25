@@ -1,10 +1,10 @@
 # lab10
-Install dependencies:
-pip install pandas
-pip install requests
-pip install matplotlib
-pip install sklearn
-pip install ggplot
+Install dependencies: </br>
+pip install pandas </br>
+pip install requests </br>
+pip install matplotlib </br>
+pip install sklearn </br>
+pip install ggplot </br>
 
 Step 1:
 Download manifest and json files from https://portal.gdc.cancer.gov/repository
