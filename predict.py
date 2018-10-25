@@ -61,42 +61,45 @@ def model_fit_predict(X_train,X_test,y_train,y_test):
 	from sklearn.ensemble import GradientBoostingClassifier
 	from sklearn.ensemble import ExtraTreesClassifier
 	from sklearn.svm import SVC
+	from sklearn.neural_network import MLPClassifier
 	from sklearn.metrics import precision_score
 	from sklearn.metrics import accuracy_score
 	from sklearn.metrics import f1_score
 	from sklearn.metrics import recall_score
 	models = {
-		# 'LogisticRegression': LogisticRegression()
+		# 'LogisticRegression': LogisticRegression(),
 		# 'ExtraTreesClassifier': ExtraTreesClassifier(),
-		'RandomForestClassifier': RandomForestClassifier()
-    	# 'AdaBoostClassifier': AdaBoostClassifier(),
-    	# 'GradientBoostingClassifier': GradientBoostingClassifier(),
-    	# 'SVC': SVC()
+		# 'RandomForestClassifier': RandomForestClassifier(),
+  #   	'AdaBoostClassifier': AdaBoostClassifier(),
+  #   	'GradientBoostingClassifier': GradientBoostingClassifier(),
+  #   	'SVC': SVC(),
+    	'MLPClassifier': MLPClassifier()
 	}
 	tuned_parameters = {
 		# 'LogisticRegression':{'C': [1, 10]},
 		# 'ExtraTreesClassifier': { 'n_estimators': [16, 32] },
-		'RandomForestClassifier': { 'n_estimators': [16, 32] },
-    	# 'AdaBoostClassifier': { 'n_estimators': [16, 32] },
-    	# 'GradientBoostingClassifier': { 'n_estimators': [16, 32], 'learning_rate': [0.8, 1.0] },
-    	# 'SVC': {'kernel': ['rbf'], 'C': [1, 10], 'gamma': [0.001, 0.0001]},
+		# 'RandomForestClassifier': { 'n_estimators': [16, 32] },
+  #   	'AdaBoostClassifier': { 'n_estimators': [16, 32] },
+  #   	'GradientBoostingClassifier': { 'n_estimators': [16, 32], 'learning_rate': [0.8, 1.0] },
+  #   	'SVC': {'kernel': ['rbf'], 'C': [1, 10], 'gamma': [0.001, 0.0001]},
+    	'MLPClassifier' : {'alpha': [1]}
 	}
 	scores= {}
 	for key in models:
 		clf = GridSearchCV(models[key], tuned_parameters[key], scoring=None,  refit=True, cv=10)
 		clf.fit(X_train,y_train)
-		# if key == 'SVC':
-		# 	classifier = OneVsRestClassifier(models[key])
-		# 	y_score = classifier.fit(X_train, y_train).decision_function(X_test)
+		# if key == 'MLPClassifier':
+			# classifier = OneVsRestClassifier(models[key])
+			# y_score = classifier.fit(X_train, y_train)#.decision_function(X_test)
 		y_test_predict = clf.predict(X_test)
-		precision = precision_score(y_test, y_test_predict, average = "macro")
+		precision = precision_score(y_test, y_test_predict, average = 'micro')
 		accuracy = accuracy_score(y_test, y_test_predict)
-		f1 = f1_score(y_test, y_test_predict , average = "macro")
-		recall = recall_score(y_test, y_test_predict, average = "macro")
-		specificity = specificity_score(y_test, y_test_predict, )
+		f1 = f1_score(y_test, y_test_predict, average = 'micro')
+		recall = recall_score(y_test, y_test_predict, average = 'micro')
+		specificity = specificity_score(y_test, y_test_predict)
 		scores[key] = [precision,accuracy,f1,recall,specificity]
 	#print(scores)
-	return scores, y_score
+	return scores, y_test_predict
 
 
 
@@ -193,7 +196,7 @@ def draw_roc(scores, Y):
 if __name__ == '__main__':
 
 
-	data_dir =""
+	data_dir ="/home/sukruth/Lab10/"
 
 	data_file = data_dir + "miRNA_matrix.csv"
 
@@ -207,6 +210,14 @@ if __name__ == '__main__':
 	#print (columns)
 	X_data = df.values
 	
+	'''for i in range(0,X_data.shape[0]):
+		if (y_data[i] == '0') or (y_data[i] == '1'):
+			continue
+		else:
+			print(y_data[i])
+			np.delete(y_data, i, 0)
+			np.delete(X_data, i, 0)
+	print(y_data)'''
 	# split the data to train and test set
 	X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.3, random_state=0)
 	
@@ -216,21 +227,24 @@ if __name__ == '__main__':
 	scaler.fit(X_train)
 	X_train = scaler.transform(X_train)
 	X_test = scaler.transform(X_test)
+	print(type(y_train))
 
 	# check the distribution of tumor and normal sampels in traing and test data set.
-	# logger.info("Percentage of tumor cases in training set is {}".format(sum(y_train)/len(y_train)))
-	# logger.info("Percentage of tumor cases in test set is {}".format(sum(y_test)/len(y_test)))
+	# print("Percentage of tumor cases in training set is " + str(sum(y_train)/len(y_train)))
+	# print("Percentage of tumor cases in test set is " + str(sum(y_test)/len(y_test)))
+	logger.info("Percentage of tumor cases in training set is {}".format(sum(y_train)/len(y_train)))
+	logger.info("Percentage of tumor cases in test set is {}".format(sum(y_test)/len(y_test)))
 	
 	n = 7
 	feaures_columns = lassoSelection(X_train, y_train, n)
 
 
 
-	scores, y_score = model_fit_predict(X_train[:,feaures_columns],X_test[:,feaures_columns],y_train,y_test)
-	# pca_calculation(X_train, y_train)
-	# tsne(X_train, y_train)
-	# draw(scores)
-	draw_roc(y_score, y_test)
+	scores, y_test_predict = model_fit_predict(X_train[:,feaures_columns],X_test[:,feaures_columns],y_train,y_test)
+	pca_calculation(X_train, y_train)
+	tsne(X_train, y_train)
+	draw(scores)
+	draw_roc(y_test_predict, y_test)
 	#lasso cross validation
 	# lassoreg = Lasso(random_state=0)
 	# alphas = np.logspace(-4, -0.5, 30)
